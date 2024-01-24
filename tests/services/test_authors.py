@@ -9,7 +9,12 @@ from exceptions import ObjectNotFoundException
 from models import Author
 from repositories.authors import AuthorsRepository
 from schemas.base import SortEnum
-from schemas.authors import BaseAuthorSchema, AuthorPatchSchema, AuthorFilterEnum, AuthorOutSchema
+from schemas.authors import (
+    BaseAuthorSchema,
+    AuthorPatchSchema,
+    AuthorFilterEnum,
+    AuthorOutSchema,
+)
 from services.authors import AuthorsService
 from services.books import BooksService
 
@@ -26,7 +31,9 @@ def mock_books_service():
 
 @pytest.fixture
 def authors_service(mock_authors_repository, mock_books_service):
-    return AuthorsService(authors_repository=mock_authors_repository, books_service=mock_books_service)
+    return AuthorsService(
+        authors_repository=mock_authors_repository, books_service=mock_books_service
+    )
 
 
 author_data_list = [
@@ -34,19 +41,18 @@ author_data_list = [
     {"name": "Jane Doe", "bio": "EVEN GREATER BIO"},
 ]
 
-author_data = {
-    "name": "John Doe",
-    "bio": "GREAT BIO!!!"
-}
+author_data = {"name": "John Doe", "bio": "GREAT BIO!!!"}
 
-author_id = '5f85f36d6dfecacc68428a46'
+author_id = "5f85f36d6dfecacc68428a46"
 
 
 @pytest.mark.asyncio
 async def test_create_author(authors_service, mock_authors_repository):
     base_author_schema = BaseAuthorSchema(**author_data)
 
-    mock_authors_repository.save.return_value = Author(**author_data, id=ObjectId(author_id))
+    mock_authors_repository.save.return_value = Author(
+        **author_data, id=ObjectId(author_id)
+    )
 
     created_author = await authors_service.create(base_author_schema)
 
@@ -59,11 +65,14 @@ async def test_create_author(authors_service, mock_authors_repository):
 async def test_update_author(authors_service, mock_authors_repository):
     author_patch_schema = AuthorPatchSchema(**author_data)
 
-    mock_authors_repository.get_one.return_value = Author(name="Old John", bio="old bio (he was young and foolish)",
-                                                          id=author_id)
+    mock_authors_repository.get_one.return_value = Author(
+        name="Old John", bio="old bio (he was young and foolish)", id=author_id
+    )
     mock_authors_repository.save.return_value = Author(**author_data)
 
-    updated_author = await authors_service.update(ObjectId(author_id), author_patch_schema)
+    updated_author = await authors_service.update(
+        ObjectId(author_id), author_patch_schema
+    )
 
     mock_authors_repository.get_one.assert_called_once_with(ObjectId(author_id))
     mock_authors_repository.save.assert_called_once()
@@ -73,13 +82,17 @@ async def test_update_author(authors_service, mock_authors_repository):
 
 
 @pytest.mark.asyncio
-async def test_get_one_author(authors_service, mock_authors_repository, mock_books_service):
+async def test_get_one_author(
+    authors_service, mock_authors_repository, mock_books_service
+):
     mock_authors_repository.get_one.return_value = Author(**author_data, id=author_id)
 
     retrieved_author = await authors_service.get_one(ObjectId(author_id))
 
     mock_authors_repository.get_one.assert_called_once_with(ObjectId(author_id))
-    mock_books_service.get_book_count_for_author.assert_called_once_with(ObjectId(author_id))
+    mock_books_service.get_book_count_for_author.assert_called_once_with(
+        ObjectId(author_id)
+    )
     assert isinstance(retrieved_author, AuthorOutSchema)
     assert retrieved_author.name == author_data["name"]
     assert str(retrieved_author.id) == author_id
@@ -87,18 +100,21 @@ async def test_get_one_author(authors_service, mock_authors_repository, mock_boo
 
 @pytest.mark.asyncio
 async def test_query_filters(authors_service, mock_authors_repository):
-    mock_authors_repository.query.return_value = [Author(**data) for data in author_data_list if
-                                                  data['name'] == 'John Doe']
+    mock_authors_repository.query.return_value = [
+        Author(**data) for data in author_data_list if data["name"] == "John Doe"
+    ]
 
-    result = await authors_service.query(filter_attributes=[AuthorFilterEnum.name, AuthorFilterEnum.bio],
-                                         filter_values=["John Doe", "the great bio"])
+    result = await authors_service.query(
+        filter_attributes=[AuthorFilterEnum.name, AuthorFilterEnum.bio],
+        filter_values=["John Doe", "the great bio"],
+    )
 
     mock_authors_repository.query.assert_called_once_with(
-        filters_dict={'name': 'John Doe', 'bio': "the great bio"},
+        filters_dict={"name": "John Doe", "bio": "the great bio"},
         sort=AuthorFilterEnum.name,
         sort_direction=SortEnum.asc,
         page=1,
-        size=10
+        size=10,
     )
     assert isinstance(result, list)
     assert all(isinstance(author, Author) for author in result)
@@ -107,7 +123,9 @@ async def test_query_filters(authors_service, mock_authors_repository):
 
 @pytest.mark.asyncio
 async def test_query_default(authors_service, mock_authors_repository):
-    mock_authors_repository.query.return_value = [Author(**data) for data in author_data_list]
+    mock_authors_repository.query.return_value = [
+        Author(**data) for data in author_data_list
+    ]
 
     result = await authors_service.query()
 
@@ -116,7 +134,7 @@ async def test_query_default(authors_service, mock_authors_repository):
         sort=AuthorFilterEnum.name,
         sort_direction=SortEnum.asc,
         page=1,
-        size=10
+        size=10,
     )
     assert isinstance(result, list)
     assert all(isinstance(author, Author) for author in result)
@@ -125,16 +143,20 @@ async def test_query_default(authors_service, mock_authors_repository):
 
 @pytest.mark.asyncio
 async def test_query_sort(authors_service, mock_authors_repository):
-    mock_authors_repository.query.return_value = [Author(**data) for data in author_data_list]
+    mock_authors_repository.query.return_value = [
+        Author(**data) for data in author_data_list
+    ]
 
-    result = await authors_service.query(sort=AuthorFilterEnum.bio, sort_direction=SortEnum.desc)
+    result = await authors_service.query(
+        sort=AuthorFilterEnum.bio, sort_direction=SortEnum.desc
+    )
 
     mock_authors_repository.query.assert_called_once_with(
         filters_dict={},
         sort=AuthorFilterEnum.bio,
         sort_direction=SortEnum.desc,
         page=1,
-        size=10
+        size=10,
     )
     assert isinstance(result, list)
     assert all(isinstance(author, Author) for author in result)
@@ -144,19 +166,27 @@ async def test_query_sort(authors_service, mock_authors_repository):
 @pytest.mark.asyncio
 async def test_wrong_filters(authors_service, mock_authors_repository):
     with pytest.raises(RequestValidationError):
-        await authors_service.query(filter_attributes=[AuthorFilterEnum.name, AuthorFilterEnum.bio],
-                                    filter_values=["John Doe"])
+        await authors_service.query(
+            filter_attributes=[AuthorFilterEnum.name, AuthorFilterEnum.bio],
+            filter_values=["John Doe"],
+        )
 
 
 @pytest.mark.asyncio
-async def test_delete_author(authors_service, mock_authors_repository, mock_books_service):
-    mock_authors_repository.get_one.return_value = Author(name="Old John", bio="too old now")
+async def test_delete_author(
+    authors_service, mock_authors_repository, mock_books_service
+):
+    mock_authors_repository.get_one.return_value = Author(
+        name="Old John", bio="too old now"
+    )
 
     await authors_service.delete(ObjectId(author_id))
 
     mock_authors_repository.get_one.assert_called_once_with(ObjectId(author_id))
     mock_authors_repository.delete.assert_called_once()
-    mock_books_service.delete_books_for_author.assert_called_once_with(ObjectId(author_id))
+    mock_books_service.delete_books_for_author.assert_called_once_with(
+        ObjectId(author_id)
+    )
 
 
 @pytest.mark.asyncio

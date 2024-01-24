@@ -13,11 +13,14 @@ from schemas.base import SortEnum
 from schemas.reviews import BaseReviewSchema, ReviewPatchSchema, ReviewFilterEnum
 from services.reviews import ReviewsService
 
-user_1_id = '5f85f36d6dfecacc68228a26'
+user_1_id = "5f85f36d6dfecacc68228a26"
 
-book_1_id = '5f85f36d6dfecacc68428a26'
+book_1_id = "5f85f36d6dfecacc68428a26"
 test_review_data = {
-    "rating": 1, "comment": "The book was too heavy", 'book_id': book_1_id, 'user_id': user_1_id
+    "rating": 1,
+    "comment": "The book was too heavy",
+    "book_id": book_1_id,
+    "user_id": user_1_id,
 }
 
 test_review_id = "5f85f36d6dfecacc68428a26"
@@ -40,7 +43,7 @@ async def test_create_review():
     mock_reviews_service.create.assert_called_once_with(BaseReviewSchema(**review_data))
     assert response.status_code == 200
     assert review_data.items() <= response.json().items()
-    assert response.json()['id'] is not None
+    assert response.json()["id"] is not None
 
 
 def test_update_review_when_missing():
@@ -51,11 +54,15 @@ def test_update_review_when_missing():
     review_id = test_review_id
     review_data = test_review_data
 
-    mock_reviews_service.update.side_effect = ObjectNotFoundException(detail="Review not found")
+    mock_reviews_service.update.side_effect = ObjectNotFoundException(
+        detail="Review not found"
+    )
 
     response = client.patch(f"/api/v1/reviews/{review_id}", json=review_data)
 
-    mock_reviews_service.update.assert_called_once_with(ObjectId(review_id), ReviewPatchSchema(**review_data))
+    mock_reviews_service.update.assert_called_once_with(
+        ObjectId(review_id), ReviewPatchSchema(**review_data)
+    )
     assert response.status_code == 404
 
 
@@ -67,14 +74,18 @@ def test_update_review():
     review_id = test_review_id
     review_data = test_review_data
 
-    mock_reviews_service.update.return_value = Review(**review_data, id=ObjectId(review_id))
+    mock_reviews_service.update.return_value = Review(
+        **review_data, id=ObjectId(review_id)
+    )
 
     response = client.patch(f"/api/v1/reviews/{review_id}", json=review_data)
 
-    mock_reviews_service.update.assert_called_once_with(ObjectId(review_id), ReviewPatchSchema(**review_data))
+    mock_reviews_service.update.assert_called_once_with(
+        ObjectId(review_id), ReviewPatchSchema(**review_data)
+    )
     assert response.status_code == 200
     assert review_data.items() <= response.json().items()
-    assert response.json()['id'] == review_id
+    assert response.json()["id"] == review_id
 
 
 def test_get_one_review_when_missing():
@@ -82,7 +93,9 @@ def test_get_one_review_when_missing():
     mock_reviews_service = MagicMock(spec=ReviewsService)
     app.dependency_overrides[get_reviews_service] = lambda: mock_reviews_service
 
-    mock_reviews_service.get_one.side_effect = ObjectNotFoundException(detail="Review not found")
+    mock_reviews_service.get_one.side_effect = ObjectNotFoundException(
+        detail="Review not found"
+    )
 
     response = client.get(f"/api/v1/reviews/{test_review_id}")
 
@@ -97,13 +110,16 @@ def test_get_one_review():
 
     review_data = test_review_data
 
-    mock_reviews_service.get_one.return_value = Review(**review_data, id=ObjectId(test_review_id))
+    mock_reviews_service.get_one.return_value = Review(
+        **review_data, id=ObjectId(test_review_id)
+    )
 
     response = client.get(f"/api/v1/reviews/{test_review_id}")
 
     mock_reviews_service.get_one.assert_called_once_with(ObjectId(test_review_id))
     assert response.status_code == 200
-    assert response.json()['id'] == test_review_id
+    assert response.json()["id"] == test_review_id
+
 
 def test_query_reviews_with_filters_and_sort():
     client = TestClient(app)
@@ -115,7 +131,10 @@ def test_query_reviews_with_filters_and_sort():
     sort = ReviewFilterEnum.rating
     sort_direction = SortEnum.desc
 
-    mock_reviews_service.query.return_value = ([Review(**test_review_data, id=ObjectId(test_review_id))], 1)
+    mock_reviews_service.query.return_value = (
+        [Review(**test_review_data, id=ObjectId(test_review_id))],
+        1,
+    )
 
     response = client.get(
         f"/api/v1/reviews/?filter_attributes={filter_attributes[0].lower()}"
@@ -133,12 +152,12 @@ def test_query_reviews_with_filters_and_sort():
         expected_sort,
         expected_sort_direction,
         None,
-        None
+        None,
     )
     assert response.status_code == 200
-    response_json_items = response.json()['items']
+    response_json_items = response.json()["items"]
     assert test_review_data.items() <= response_json_items[0].items()
-    assert test_review_id == response_json_items[0]['id']
+    assert test_review_id == response_json_items[0]["id"]
 
 
 def test_delete_review():
@@ -157,7 +176,9 @@ def test_delete_review_not_found():
     mock_reviews_service = MagicMock(spec=ReviewsService)
     app.dependency_overrides[get_reviews_service] = lambda: mock_reviews_service
 
-    mock_reviews_service.delete.side_effect = ObjectNotFoundException(detail="Review not found")
+    mock_reviews_service.delete.side_effect = ObjectNotFoundException(
+        detail="Review not found"
+    )
 
     response = client.delete(f"/api/v1/reviews/{test_review_id}")
 

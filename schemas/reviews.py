@@ -19,10 +19,15 @@ class ReviewPatchSchema(BaseModel):
     book_id: Optional[ObjectId] = None
     user_id: Optional[ObjectId] = None
 
-    @model_validator(mode='after')
-    def check_object_not_empty(self) -> 'ReviewPatchSchema':
-        if self.rating is None and self.comment is None and self.book_id is None and self.user_id is None:
-            raise ValueError('All fields cannot be empty')
+    @model_validator(mode="after")
+    def check_object_not_empty(self) -> "ReviewPatchSchema":
+        if (
+            self.rating is None
+            and self.comment is None
+            and self.book_id is None
+            and self.user_id is None
+        ):
+            raise ValueError("All fields cannot be empty")
         return self
 
 

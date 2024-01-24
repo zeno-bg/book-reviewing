@@ -18,7 +18,7 @@ test_book_data = {
     "isbn": "23123123123",
     "description": "Truly stunning by Jown Doe",
     "publication_date": "2024-01-23T21:19:18.307000",
-    "author_id": "5f85f36d6dfecacc68428a46"
+    "author_id": "5f85f36d6dfecacc68428a46",
 }
 
 test_book_id = "5f85f36d6dfecacc68428a26"
@@ -41,7 +41,7 @@ async def test_create_book():
     mock_books_service.create.assert_called_once_with(BaseBookSchema(**book_data))
     assert response.status_code == 200
     assert book_data.items() <= response.json().items()
-    assert response.json()['id'] is not None
+    assert response.json()["id"] is not None
 
 
 def test_update_book_when_missing():
@@ -52,11 +52,15 @@ def test_update_book_when_missing():
     book_id = test_book_id
     book_data = test_book_data
 
-    mock_books_service.update.side_effect = ObjectNotFoundException(detail="Book not found")
+    mock_books_service.update.side_effect = ObjectNotFoundException(
+        detail="Book not found"
+    )
 
     response = client.patch(f"/api/v1/books/{book_id}", json=book_data)
 
-    mock_books_service.update.assert_called_once_with(ObjectId(book_id), BookPatchSchema(**book_data))
+    mock_books_service.update.assert_called_once_with(
+        ObjectId(book_id), BookPatchSchema(**book_data)
+    )
     assert response.status_code == 404
 
 
@@ -72,10 +76,12 @@ def test_update_book():
 
     response = client.patch(f"/api/v1/books/{book_id}", json=book_data)
 
-    mock_books_service.update.assert_called_once_with(ObjectId(book_id), BookPatchSchema(**book_data))
+    mock_books_service.update.assert_called_once_with(
+        ObjectId(book_id), BookPatchSchema(**book_data)
+    )
     assert response.status_code == 200
     assert book_data.items() <= response.json().items()
-    assert response.json()['id'] == book_id
+    assert response.json()["id"] == book_id
 
 
 def test_get_one_book_when_missing():
@@ -83,7 +89,9 @@ def test_get_one_book_when_missing():
     mock_books_service = MagicMock(spec=BooksService)
     app.dependency_overrides[get_books_service] = lambda: mock_books_service
 
-    mock_books_service.get_one.side_effect = ObjectNotFoundException(detail="Book not found")
+    mock_books_service.get_one.side_effect = ObjectNotFoundException(
+        detail="Book not found"
+    )
 
     response = client.get(f"/api/v1/books/{test_book_id}")
 
@@ -98,14 +106,17 @@ def test_get_one_book():
 
     book_data = test_book_data
 
-    mock_books_service.get_one.return_value = BookOutSchema(**book_data, id=ObjectId(test_book_id), average_rating=1)
+    mock_books_service.get_one.return_value = BookOutSchema(
+        **book_data, id=ObjectId(test_book_id), average_rating=1
+    )
 
     response = client.get(f"/api/v1/books/{test_book_id}")
 
     mock_books_service.get_one.assert_called_once_with(ObjectId(test_book_id))
     assert response.status_code == 200
     print(response.json())
-    assert response.json()['id'] == test_book_id
+    assert response.json()["id"] == test_book_id
+
 
 def test_query_books_with_filters_and_sort():
     client = TestClient(app)
@@ -117,7 +128,10 @@ def test_query_books_with_filters_and_sort():
     sort = BookFilterEnum.isbn
     sort_direction = SortEnum.desc
 
-    mock_books_service.query.return_value = ([Book(**test_book_data, id=ObjectId(test_book_id))], 1)
+    mock_books_service.query.return_value = (
+        [Book(**test_book_data, id=ObjectId(test_book_id))],
+        1,
+    )
 
     response = client.get(
         f"/api/v1/books/?filter_attributes={filter_attributes[0].lower()}"
@@ -135,12 +149,12 @@ def test_query_books_with_filters_and_sort():
         expected_sort,
         expected_sort_direction,
         None,
-        None
+        None,
     )
     assert response.status_code == 200
-    response_json_items = response.json()['items']
+    response_json_items = response.json()["items"]
     assert test_book_data.items() <= response_json_items[0].items()
-    assert test_book_id == response_json_items[0]['id']
+    assert test_book_id == response_json_items[0]["id"]
 
 
 def test_delete_book():
@@ -159,7 +173,9 @@ def test_delete_book_not_found():
     mock_books_service = MagicMock(spec=BooksService)
     app.dependency_overrides[get_books_service] = lambda: mock_books_service
 
-    mock_books_service.delete.side_effect = ObjectNotFoundException(detail="Book not found")
+    mock_books_service.delete.side_effect = ObjectNotFoundException(
+        detail="Book not found"
+    )
 
     response = client.delete(f"/api/v1/books/{test_book_id}")
 

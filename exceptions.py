@@ -1,4 +1,3 @@
-
 import inspect
 
 from decorator import decorate
@@ -24,6 +23,7 @@ async def _database_exception_wrapper(func, *args, **kwargs):
         return await func(*args, **kwargs)
     except Exception as e:
         raise DatabaseException(e)
+
 
 def database_exception_wrapper(func):
     return decorate(func, _database_exception_wrapper)

@@ -32,10 +32,15 @@ class UserPatchSchema(BaseModel):
     email: Optional[str] = None
     phone: Optional[str] = None
 
-    @model_validator(mode='after')
-    def check_object_not_empty(self) -> 'UserPatchSchema':
-        if self.name is None and self.birthday is None and self.email is None and self.phone is None:
-            raise ValueError('All fields cannot be empty')
+    @model_validator(mode="after")
+    def check_object_not_empty(self) -> "UserPatchSchema":
+        if (
+            self.name is None
+            and self.birthday is None
+            and self.email is None
+            and self.phone is None
+        ):
+            raise ValueError("All fields cannot be empty")
         return self
 
     @field_validator("email")
@@ -50,15 +55,18 @@ class UserPatchSchema(BaseModel):
 
 
 def validate_email(value: str) -> str:
-    if not re.compile(r'[^@]+@[^@]+\.[^@]+').match(value):
+    if not re.compile(r"[^@]+@[^@]+\.[^@]+").match(value):
         raise ValueError("Email is not valid")
     return value
 
 
 def validate_phone(value: str) -> str:
-    if not re.compile(r'^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$').match(value):
+    if not re.compile(
+        r"^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$"
+    ).match(value):
         raise ValueError("Phone is not valid")
     return value
+
 
 class UserFilterEnum(str, Enum):
     name = "name"

@@ -31,17 +31,32 @@ class BooksRepository:
         await self.mongo_engine.delete(book)
 
     @database_exception_wrapper
-    async def query(self, sort: str, sort_direction: str, page: int, size: int,
-                    filters_dict: dict[str, str | ObjectId] = None, without_count: bool = False) -> (list[Book], int):
+    async def query(
+        self,
+        sort: str,
+        sort_direction: str,
+        page: int,
+        size: int,
+        filters_dict: dict[str, str | ObjectId] = None,
+        without_count: bool = False,
+    ) -> (list[Book], int):
         queries = []
         if len(filters_dict) > 0:
             for filter_attribute_name in filters_dict.keys():
                 queries.append(
-                    QueryExpression(eval('Book.' + filter_attribute_name) == filters_dict[filter_attribute_name])
+                    QueryExpression(
+                        eval("Book." + filter_attribute_name)
+                        == filters_dict[filter_attribute_name]
+                    )
                 )
 
-        items = await self.mongo_engine.find(Book, *queries, sort=eval('Book.' + sort + '.' + sort_direction + '()'),
-                                             skip=(page - 1) * size, limit=size)
+        items = await self.mongo_engine.find(
+            Book,
+            *queries,
+            sort=eval("Book." + sort + "." + sort_direction + "()"),
+            skip=(page - 1) * size,
+            limit=size
+        )
 
         if without_count:
             return items, None

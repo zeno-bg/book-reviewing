@@ -2,7 +2,12 @@ from datetime import datetime
 
 import pytest
 
-from schemas.users import BaseUserSchema, UserPatchSchema, validate_email, validate_phone
+from schemas.users import (
+    BaseUserSchema,
+    UserPatchSchema,
+    validate_email,
+    validate_phone,
+)
 
 valid_emails = ["bill.clinton@usa.gov", "john@doe.com", "elon@x.com"]
 invalid_emails = ["bill@clinton@usa", "alksdfjaklsdf", "@@@@@@", "@", "elon@elon"]

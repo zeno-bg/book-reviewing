@@ -17,7 +17,9 @@ class ReviewsRepository:
 
     @database_exception_wrapper
     async def get_one(self, review_id: ObjectId) -> Review | None:
-        review: Review = await self.mongo_engine.find_one(Review, Review.id == review_id)
+        review: Review = await self.mongo_engine.find_one(
+            Review, Review.id == review_id
+        )
         return review
 
     @database_exception_wrapper
@@ -29,41 +31,50 @@ class ReviewsRepository:
         await self.mongo_engine.delete(review)
 
     @database_exception_wrapper
-    async def query(self, sort: str, sort_direction: str, page: int, size: int,
-                    filters_dict: dict[str, str | ObjectId] = None) -> (list[Review], int):
+    async def query(
+        self,
+        sort: str,
+        sort_direction: str,
+        page: int,
+        size: int,
+        filters_dict: dict[str, str | ObjectId] = None,
+    ) -> (list[Review], int):
         queries = []
         if len(filters_dict) > 0:
             for filter_attribute_name in filters_dict.keys():
                 queries.append(
-                    QueryExpression(eval('Review.' + filter_attribute_name) == filters_dict[filter_attribute_name])
+                    QueryExpression(
+                        eval("Review." + filter_attribute_name)
+                        == filters_dict[filter_attribute_name]
+                    )
                 )
 
-        items = await self.mongo_engine.find(Review, *queries, sort=eval('Review.' + sort + '.' + sort_direction + '()'),
-                                             skip=(page - 1) * size, limit=size)
+        items = await self.mongo_engine.find(
+            Review,
+            *queries,
+            sort=eval("Review." + sort + "." + sort_direction + "()"),
+            skip=(page - 1) * size,
+            limit=size
+        )
         total_count = await self.mongo_engine.count(Review, *queries)
 
         return items, total_count
 
     @database_exception_wrapper
     async def get_average_rating_for_book(self, book_id: ObjectId) -> float:
-        result = await self.mongo_engine.get_collection(Review).aggregate([
-            {
-                "$match":
-                    {
-                        'book_id': book_id
-                    }
-            },
-            {
-                "$group":
-                    {
-                        "_id": None,
-                        "average_rating": {"$avg": "$rating"}
-                    }
-            }
-        ]).to_list(length=None)
+        result = (
+            await self.mongo_engine.get_collection(Review)
+            .aggregate(
+                [
+                    {"$match": {"book_id": book_id}},
+                    {"$group": {"_id": None, "average_rating": {"$avg": "$rating"}}},
+                ]
+            )
+            .to_list(length=None)
+        )
         if len(result) == 0:
             return 0
-        return result[0]['average_rating']
+        return result[0]["average_rating"]
 
     @database_exception_wrapper
     async def delete_reviews_for_book(self, book_id: ObjectId):

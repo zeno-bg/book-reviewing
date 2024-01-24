@@ -7,9 +7,7 @@ class Author(Model):
     name: str
     bio: str
 
-    model_config = {
-        "collection": "authors"
-    }
+    model_config = {"collection": "authors"}
 
 
 class Book(Model):
@@ -19,9 +17,7 @@ class Book(Model):
     publication_date: datetime
     author_id: ObjectId
 
-    model_config = {
-        "collection": "books"
-    }
+    model_config = {"collection": "books"}
 
 
 class User(Model):
@@ -30,9 +26,7 @@ class User(Model):
     email: str
     phone: str
 
-    model_config = {
-        "collection": "users"
-    }
+    model_config = {"collection": "users"}
 
 
 class Review(Model):
@@ -41,8 +35,4 @@ class Review(Model):
     user_id: ObjectId
     book_id: ObjectId
 
-    model_config = {
-        "collection": "reviews"
-    }
-
-# TODO: test if adding relations works properly
+    model_config = {"collection": "reviews"}

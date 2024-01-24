@@ -21,11 +21,16 @@ class BookPatchSchema(BaseModel):
     publication_date: Optional[datetime] = None
     author_id: Optional[ObjectId] = None
 
-    @model_validator(mode='after')
-    def check_object_not_empty(self) -> 'BookPatchSchema':
-        if self.isbn is None and self.title is None and self.description is None\
-                and self.publication_date is None and self.author_id is None:
-            raise ValueError('All fields cannot be empty')
+    @model_validator(mode="after")
+    def check_object_not_empty(self) -> "BookPatchSchema":
+        if (
+            self.isbn is None
+            and self.title is None
+            and self.description is None
+            and self.publication_date is None
+            and self.author_id is None
+        ):
+            raise ValueError("All fields cannot be empty")
         return self
 
 
