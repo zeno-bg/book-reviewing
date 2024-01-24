@@ -10,7 +10,7 @@ from exceptions import ObjectNotFoundException
 from main import app
 from models import Book
 from schemas.base import SortEnum
-from schemas.books import BaseBookSchema, BookPatchSchema, BookFilterEnum
+from schemas.books import BaseBookSchema, BookPatchSchema, BookFilterEnum, BookOutSchema
 from services.books import BooksService
 
 test_book_data = {
@@ -98,12 +98,13 @@ def test_get_one_book():
 
     book_data = test_book_data
 
-    mock_books_service.get_one.return_value = Book(**book_data, id=ObjectId(test_book_id))
+    mock_books_service.get_one.return_value = BookOutSchema(**book_data, id=ObjectId(test_book_id), average_rating=1)
 
     response = client.get(f"/api/v1/books/{test_book_id}")
 
     mock_books_service.get_one.assert_called_once_with(ObjectId(test_book_id))
     assert response.status_code == 200
+    print(response.json())
     assert response.json()['id'] == test_book_id
 
 def test_query_books_with_filters_and_sort():

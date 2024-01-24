@@ -8,7 +8,7 @@ from odmantic import ObjectId
 from dependencies import get_books_service
 from models import Book
 from schemas.base import SortEnum
-from schemas.books import BookPatchSchema, BaseBookSchema, BookFilterEnum
+from schemas.books import BookPatchSchema, BaseBookSchema, BookFilterEnum, BookOutSchema
 from services.books import BooksService
 
 router = APIRouter()
@@ -27,7 +27,7 @@ async def update(book_id: ObjectId, book_new: BookPatchSchema, books_service: Bo
 
 
 @router.get('/{book_id}')
-async def get_one(book_id: ObjectId, books_service: BooksServiceDep) -> Book:
+async def get_one(book_id: ObjectId, books_service: BooksServiceDep) -> BookOutSchema:
     return await books_service.get_one(book_id)
 
 

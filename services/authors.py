@@ -24,7 +24,7 @@ class AuthorsService:
         self.books_service = books_service
 
     async def create(self, author: BaseAuthorSchema) -> Author:
-        author_in_db = Author(**author.model_dump())
+        author_in_db = Author(**author.model_dump(exclude={'id'}))
         return await self.__authors_repository.save(author_in_db)
 
     async def update(self, author_id: ObjectId, author_new: AuthorPatchSchema) -> Author:

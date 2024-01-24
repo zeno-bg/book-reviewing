@@ -19,7 +19,7 @@ class BookPatchSchema(BaseModel):
     title: Optional[str] = Field(min_length=3, max_length=300, default=None)
     description: Optional[str] = Field(min_length=10, max_length=1000, default=None)
     publication_date: Optional[datetime] = None
-    author_id: Optional[str] = None
+    author_id: Optional[ObjectId] = None
 
     @model_validator(mode='after')
     def check_object_not_empty(self) -> 'BookPatchSchema':
@@ -27,6 +27,11 @@ class BookPatchSchema(BaseModel):
                 and self.publication_date is None and self.author_id is None:
             raise ValueError('All fields cannot be empty')
         return self
+
+
+class BookOutSchema(BaseBookSchema):
+    id: Optional[ObjectId] = None
+    average_rating: float
 
 
 class BookFilterEnum(str, Enum):

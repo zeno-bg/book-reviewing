@@ -1,4 +1,6 @@
+import asyncio
 import datetime
+from typing import TYPE_CHECKING
 
 from fastapi.exceptions import RequestValidationError
 from odmantic import ObjectId
@@ -9,12 +11,18 @@ from repositories.users import UsersRepository
 from schemas.base import SortEnum
 from schemas.users import BaseUserSchema, UserPatchSchema, UserFilterEnum
 
+if TYPE_CHECKING:
+    from services.reviews import ReviewsService
+
 
 class UsersService:
+    reviews_service: 'ReviewsService'
+
     __users_repository: UsersRepository
 
-    def __init__(self, users_repository: UsersRepository):
+    def __init__(self, users_repository: UsersRepository, reviews_service: 'ReviewsService' = None):
         self.__users_repository = users_repository
+        self.reviews_service = reviews_service
 
     async def create(self, user: BaseUserSchema) -> User:
         user_in_db = User(**user.model_dump())
@@ -50,7 +58,8 @@ class UsersService:
 
     async def delete(self, user_id: ObjectId):
         user = await self.__get_user_by_id_if_exists(user_id)
-        await self.__users_repository.delete(user)
+        await asyncio.gather(self.__users_repository.delete(user),
+                       self.reviews_service.delete_reviews_by_user(user_id))
 
     async def __get_user_by_id_if_exists(self, user_id: ObjectId) -> User:
         user = await self.__users_repository.get_one(user_id)

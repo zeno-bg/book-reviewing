@@ -1,4 +1,6 @@
+import asyncio
 import datetime
+from typing import TYPE_CHECKING
 
 from fastapi.exceptions import RequestValidationError
 from odmantic import ObjectId
@@ -7,31 +9,46 @@ from exceptions import ObjectNotFoundException
 from models import Book
 from repositories.books import BooksRepository
 from schemas.base import SortEnum
-from schemas.books import BaseBookSchema, BookPatchSchema, BookFilterEnum
+from schemas.books import BaseBookSchema, BookPatchSchema, BookFilterEnum, BookOutSchema
 from services.authors import AuthorsService
+
+if TYPE_CHECKING:
+    from services.reviews import ReviewsService
 
 
 class BooksService:
+    reviews_service: 'ReviewsService'
+
     __books_repository: BooksRepository
     __authors_service: AuthorsService
 
-    def __init__(self, books_repository: BooksRepository, authors_service: AuthorsService):
+    def __init__(self, books_repository: BooksRepository, authors_service: AuthorsService,
+                 reviews_service: 'ReviewsService' = None):
         self.__books_repository = books_repository
         self.__authors_service = authors_service
+        self.reviews_service = reviews_service
 
     async def create(self, book: BaseBookSchema) -> Book:
-        author = await self.__authors_service.get_one(book.author_id)
-        book_in_db = Book(**book.model_dump(), author=author)
+        await self.__authors_service.get_one(book.author_id)
+        book_in_db = Book(**book.model_dump())
         return await self.__books_repository.save(book_in_db)
 
     async def update(self, book_id: ObjectId, book_new: BookPatchSchema) -> Book:
         book = await self.__get_book_by_id_if_exists(book_id)
+        if book_new.author_id:
+            await self.__authors_service.get_one(book.author_id)
         book.model_update(book_new, exclude_unset=True)
         await self.__books_repository.save(book)
         return book
 
-    async def get_one(self, book_id: ObjectId) -> Book:
-        return await self.__get_book_by_id_if_exists(book_id)
+    async def get_one(self, book_id: ObjectId) -> BookOutSchema:
+        book, average_rating = await asyncio.gather(self.__get_book_by_id_if_exists(book_id),
+                                                    self.reviews_service.get_average_rating_for_book(book_id))
+        return BookOutSchema(**book.model_dump(), average_rating=average_rating)
+
+    async def get_one_without_rating(self, book_id: ObjectId) -> BookOutSchema:
+        book = await self.__get_book_by_id_if_exists(book_id)
+        return BookOutSchema(**book.model_dump(), average_rating=0)
 
     async def query(self, filter_attributes: list[BookFilterEnum] = None, filter_values: list[str] = None,
                     sort: BookFilterEnum = None, sort_direction: SortEnum = None,
@@ -58,11 +75,15 @@ class BooksService:
         return await self.__books_repository.count_books_for_author(author_id)
 
     async def delete_books_for_author(self, author_id: ObjectId):
-        return await self.__books_repository.delete_books_for_author(author_id)
+        books = await self.__books_repository.get_books_for_author(author_id)
+        book_ids = [book.id for book in books]
+        await asyncio.gather(self.__books_repository.delete_books_for_author(author_id),
+                             self.reviews_service.delete_reviews_for_books(book_ids))
 
     async def delete(self, book_id: ObjectId):
         book = await self.__get_book_by_id_if_exists(book_id)
-        await self.__books_repository.delete(book)
+        await asyncio.gather(self.__books_repository.delete(book),
+                             self.reviews_service.delete_reviews_for_book(book_id))
 
     async def __get_book_by_id_if_exists(self, book_id: ObjectId) -> Book:
         book = await self.__books_repository.get_one(book_id)

@@ -38,9 +38,11 @@ class User(Model):
 class Review(Model):
     rating: int
     comment: str
-    user_id: User = Reference()
-    book_id: Book = Reference()
+    user_id: ObjectId
+    book_id: ObjectId
 
     model_config = {
         "collection": "reviews"
     }
+
+# TODO: test if adding relations works properly

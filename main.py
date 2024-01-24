@@ -14,6 +14,7 @@ from exceptions import ObjectNotFoundException, DatabaseException
 from routers.users import router as users_router
 from routers.authors import router as authors_router
 from routers.books import router as books_router
+from routers.reviews import router as reviews_router
 
 file_handler = logging.FileHandler('errors.log')
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -31,6 +32,7 @@ add_pagination(app)
 app.include_router(users_router, tags=["Users"], prefix="/users")
 app.include_router(authors_router, tags=["Authors"], prefix="/authors")
 app.include_router(books_router, tags=["Books"], prefix="/books")
+app.include_router(reviews_router, tags=["Reviews"], prefix="/reviews")
 
 
 def log_errors(exception: RequestValidationError | ObjectNotFoundException | DatabaseException):
@@ -40,7 +42,7 @@ def log_errors(exception: RequestValidationError | ObjectNotFoundException | Dat
         case ObjectNotFoundException():
             logger.error(exception.detail)
         case DatabaseException():
-            logger.error(exception)
+            logger.error("Database error", exc_info=exception)
 
 
 @app.exception_handler(RequestValidationError)

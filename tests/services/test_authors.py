@@ -46,7 +46,7 @@ author_id = '5f85f36d6dfecacc68428a46'
 async def test_create_author(authors_service, mock_authors_repository):
     base_author_schema = BaseAuthorSchema(**author_data)
 
-    mock_authors_repository.save.return_value = Author(**author_data)
+    mock_authors_repository.save.return_value = Author(**author_data, id=ObjectId(author_id))
 
     created_author = await authors_service.create(base_author_schema)
 

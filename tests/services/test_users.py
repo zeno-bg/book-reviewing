@@ -10,6 +10,7 @@ from models import User
 from repositories.users import UsersRepository
 from schemas.base import SortEnum
 from schemas.users import BaseUserSchema, UserPatchSchema, UserFilterEnum
+from services.reviews import ReviewsService
 from services.users import UsersService
 
 
@@ -19,8 +20,13 @@ def mock_users_repository():
 
 
 @pytest.fixture
-def users_service(mock_users_repository):
-    return UsersService(users_repository=mock_users_repository)
+def mock_reviews_service():
+    return MagicMock(spec=ReviewsService)
+
+
+@pytest.fixture
+def users_service(mock_users_repository, mock_reviews_service):
+    return UsersService(users_repository=mock_users_repository, reviews_service=mock_reviews_service)
 
 user_data_list = [
     {"name": "John Doe", "birthday": "2024-01-23T21:19:18.307552", "email": "john.doe@example.com",
@@ -145,12 +151,13 @@ async def test_wrong_filters(users_service, mock_users_repository):
 
 
 @pytest.mark.asyncio
-async def test_delete_user(users_service, mock_users_repository):
+async def test_delete_user(users_service, mock_users_repository, mock_reviews_service):
     mock_users_repository.get_one.return_value = User(name="Old Name", email="old@mail.com",
                                                       birthday="2024-01-23T21:19:18.307552", phone='+1234567890')
 
     await users_service.delete(ObjectId(user_id))
 
+    mock_reviews_service.delete_reviews_by_user.assert_called_once_with(ObjectId(user_id))
     mock_users_repository.get_one.assert_called_once_with(ObjectId(user_id))
     mock_users_repository.delete.assert_called_once()
 

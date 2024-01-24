@@ -31,7 +31,7 @@ async def test_create_author():
 
     author_data = test_author_data
 
-    mock_authors_service.create.return_value = Author(**author_data)
+    mock_authors_service.create.return_value = Author(**author_data, id=ObjectId(test_author_id))
 
     response = client.post("/api/v1/authors/", json=author_data)
 
@@ -103,6 +103,7 @@ def test_get_one_author():
 
     mock_authors_service.get_one.assert_called_once_with(ObjectId(test_author_id))
     assert response.status_code == 200
+    print(response.json())
     assert response.json()['id'] == test_author_id
     assert response.json()['books_count'] == books_count
 

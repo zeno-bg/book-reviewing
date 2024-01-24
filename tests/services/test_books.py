@@ -9,9 +9,10 @@ from exceptions import ObjectNotFoundException
 from models import Book
 from repositories.books import BooksRepository
 from schemas.base import SortEnum
-from schemas.books import BaseBookSchema, BookPatchSchema, BookFilterEnum
+from schemas.books import BaseBookSchema, BookPatchSchema, BookFilterEnum, BookOutSchema
 from services.authors import AuthorsService
 from services.books import BooksService
+from services.reviews import ReviewsService
 
 
 @pytest.fixture
@@ -25,8 +26,15 @@ def mock_authors_service():
 
 
 @pytest.fixture
-def books_service(mock_books_repository, mock_authors_service):
-    return BooksService(books_repository=mock_books_repository, authors_service=mock_authors_service)
+def mock_reviews_service():
+    return MagicMock(spec=ReviewsService)
+
+
+@pytest.fixture
+def books_service(mock_books_repository, mock_authors_service, mock_reviews_service):
+    return BooksService(books_repository=mock_books_repository,
+                        authors_service=mock_authors_service,
+                        reviews_service=mock_reviews_service)
 
 author_id = '5f85f36d6dfecacc68428a26'
 book_data_list = [
@@ -96,16 +104,30 @@ async def test_update_book(books_service, mock_books_repository):
 
 
 @pytest.mark.asyncio
-async def test_get_one_book(books_service, mock_books_repository):
+async def test_get_one_book(books_service, mock_books_repository, mock_reviews_service):
 
-    mock_books_repository.get_one.return_value = Book(**book_data, id=book_id)
+    mock_books_repository.get_one.return_value = Book(**book_data, id=ObjectId(book_id))
+    mock_reviews_service.get_average_rating_for_book.return_value = 2.2
 
     retrieved_book = await books_service.get_one(ObjectId(book_id))
 
     mock_books_repository.get_one.assert_called_once_with(ObjectId(book_id))
-    assert isinstance(retrieved_book, Book)
+    assert isinstance(retrieved_book, BookOutSchema)
     assert retrieved_book.title == book_data["title"]
     assert str(retrieved_book.id) == book_id
+    assert retrieved_book.average_rating == 2.2
+
+@pytest.mark.asyncio
+async def test_get_one_book_without_rating(books_service, mock_books_repository):
+    mock_books_repository.get_one.return_value = Book(**book_data, id=ObjectId(book_id))
+
+    retrieved_book = await books_service.get_one_without_rating(ObjectId(book_id))
+
+    assert isinstance(retrieved_book, BookOutSchema)
+    assert retrieved_book.title == book_data["title"]
+    assert str(retrieved_book.id) == book_id
+    assert retrieved_book.average_rating == 0
+
 
 
 @pytest.mark.asyncio
@@ -138,8 +160,8 @@ async def test_query_default(books_service, mock_books_repository):
         filters_dict={},
         sort=BookFilterEnum.title,
         sort_direction=SortEnum.asc,
-        page = 1,
-        size = 10
+        page=1,
+        size=10
     )
     assert isinstance(result, list)
     assert all(isinstance(book, Book) for book in result)
@@ -170,7 +192,7 @@ async def test_wrong_filters(books_service, mock_books_repository):
 
 
 @pytest.mark.asyncio
-async def test_delete_book(books_service, mock_books_repository):
+async def test_delete_book(books_service, mock_books_repository, mock_reviews_service):
     mock_books_repository.get_one.return_value = Book(title="Too old", description="old@mail.com",
                                                       publication_date="2024-01-23T21:19:18.307552", isbn='21234567890',
                                                       author_id=author_id)
@@ -179,6 +201,7 @@ async def test_delete_book(books_service, mock_books_repository):
 
     mock_books_repository.get_one.assert_called_once_with(ObjectId(book_id))
     mock_books_repository.delete.assert_called_once()
+    mock_reviews_service.delete_reviews_for_book.assert_called_once_with(ObjectId(book_id))
 
 
 @pytest.mark.asyncio
@@ -201,3 +224,25 @@ async def test_patch_book_not_found(books_service, mock_books_repository):
 
     mock_books_repository.get_one.assert_called_once_with(ObjectId(book_id))
     mock_books_repository.delete.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_get_book_count_for_author(books_service, mock_books_repository):
+    mock_books_repository.count_books_for_author.return_value = 7
+
+    result = await books_service.get_book_count_for_author(ObjectId(author_id))
+
+    mock_books_repository.count_books_for_author.assert_called_once_with(ObjectId(author_id))
+
+    assert result == 7
+
+@pytest.mark.asyncio
+async def test_delete_books_for_author(books_service, mock_books_repository, mock_reviews_service):
+    book_ids = [ObjectId('5f85f36d6dfecacc68428a26'), ObjectId('65b16d22dde26a309457be45')]
+    mock_books_repository.get_books_for_author.return_value =\
+        [Book(**book, id=book_id) for book, book_id in zip(book_data_list, book_ids)]
+
+    await books_service.delete_books_for_author(ObjectId(author_id))
+
+    mock_books_repository.delete_books_for_author.assert_called_once_with(ObjectId(author_id))
+    mock_reviews_service.delete_reviews_for_books.assert_called_once_with(book_ids)

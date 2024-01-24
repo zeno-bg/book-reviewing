@@ -6,14 +6,12 @@ from pydantic import BaseModel, model_validator, Field
 
 
 class BaseAuthorSchema(BaseModel):
+    id: Optional[ObjectId] = None
     name: str = Field(min_length=3, max_length=200)
     bio: str
 
 
-class AuthorOutSchema(BaseModel):
-    id: ObjectId
-    name: str
-    bio: str
+class AuthorOutSchema(BaseAuthorSchema):
     books_count: int
 
 

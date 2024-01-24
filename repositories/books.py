@@ -32,7 +32,7 @@ class BooksRepository:
 
     @database_exception_wrapper
     async def query(self, sort: str, sort_direction: str, page: int, size: int,
-                    filters_dict: dict[str, str | ObjectId] = None) -> (list[Book], int):
+                    filters_dict: dict[str, str | ObjectId] = None, without_count: bool = False) -> (list[Book], int):
         queries = []
         if len(filters_dict) > 0:
             for filter_attribute_name in filters_dict.keys():
@@ -42,6 +42,10 @@ class BooksRepository:
 
         items = await self.mongo_engine.find(Book, *queries, sort=eval('Book.' + sort + '.' + sort_direction + '()'),
                                              skip=(page - 1) * size, limit=size)
+
+        if without_count:
+            return items, None
+
         total_count = await self.mongo_engine.count(Book, *queries)
 
         return items, total_count
@@ -49,6 +53,10 @@ class BooksRepository:
     @database_exception_wrapper
     async def count_books_for_author(self, author_id: ObjectId) -> int:
         return await self.mongo_engine.count(Book, Book.author_id == author_id)
+
+    @database_exception_wrapper
+    async def get_books_for_author(self, author_id: ObjectId) -> list[Book]:
+        return await self.mongo_engine.find(Book, Book.author_id == author_id)
 
     @database_exception_wrapper
     async def delete_books_for_author(self, author_id: ObjectId):
