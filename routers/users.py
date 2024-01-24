@@ -1,10 +1,9 @@
-from typing import Annotated, Literal
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 from fastapi_pagination import Params
 from fastapi_pagination.links import Page
 from odmantic import ObjectId
-from starlette.requests import Request
 
 from dependencies import get_users_service
 from models import User

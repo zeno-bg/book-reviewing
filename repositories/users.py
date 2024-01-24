@@ -1,5 +1,3 @@
-from fastapi_pagination import Params
-from fastapi_pagination.links import Page
 from odmantic import AIOEngine, ObjectId
 from odmantic.query import QueryExpression
 
@@ -35,11 +33,13 @@ class UsersRepository:
                     filters_dict: dict[str, str] = None) -> (list[User], int):
         queries = []
         if len(filters_dict) > 0:
-            for filter in filters_dict.keys():
-                queries.append(QueryExpression(eval('User.' + filter) == filters_dict[filter]))
+            for filter_attribute_name in filters_dict.keys():
+                queries.append(
+                    QueryExpression(eval('User.' + filter_attribute_name) == filters_dict[filter_attribute_name])
+                )
 
         items = await self.mongo_engine.find(User, *queries, sort=eval('User.' + sort + '.' + sort_direction + '()'),
-                                              skip=(page - 1) * size, limit=size)
+                                             skip=(page - 1) * size, limit=size)
         total_count = await self.mongo_engine.count(User, *queries)
 
         return items, total_count

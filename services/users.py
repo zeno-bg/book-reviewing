@@ -1,7 +1,6 @@
 import datetime
 
 from fastapi.exceptions import RequestValidationError
-from fastapi_pagination.links import Page
 from odmantic import ObjectId
 
 from exceptions import ObjectNotFoundException

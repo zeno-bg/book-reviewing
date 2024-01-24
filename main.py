@@ -1,17 +1,18 @@
 import logging
 
 import uvicorn as uvicorn
-from fastapi import FastAPI, Request, BackgroundTasks
+from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
-from fastapi.exception_handlers import http_exception_handler, request_validation_exception_handler
-from fastapi.exceptions import RequestValidationError, HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi_pagination import add_pagination
 from starlette.background import BackgroundTask
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY, HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
 
 from exceptions import ObjectNotFoundException, DatabaseException
+
 from routers.users import router as users_router
+from routers.authors import router as authors_router
 
 file_handler = logging.FileHandler('errors.log')
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -23,8 +24,11 @@ logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.ERROR)
 
 app = FastAPI(root_path="/api/v1")
+
 add_pagination(app)
+
 app.include_router(users_router, tags=["Users"], prefix="/users")
+app.include_router(authors_router, tags=["Authors"], prefix="/authors")
 
 
 def log_errors(exception: RequestValidationError | ObjectNotFoundException | DatabaseException):
