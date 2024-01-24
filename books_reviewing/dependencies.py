@@ -7,14 +7,14 @@ from repositories.users import UsersRepository
 from repositories.authors import AuthorsRepository
 from repositories.books import BooksRepository
 from repositories.reviews import ReviewsRepository
-from services.users import UsersService
-from services.authors import AuthorsService
-from services.books import BooksService
-from services.reviews import ReviewsService
+from books_reviewing.services.users import UsersService
+from books_reviewing.services.authors import AuthorsService
+from books_reviewing.services.books import BooksService
+from books_reviewing.services.reviews import ReviewsService
 
 mongo_client = AsyncIOMotorClient(os.getenv("MONGO_URI", "mongodb://localhost:27017/"))
 mongo_engine = AIOEngine(
-    client=mongo_client, database=os.getenv("MONGO_DB", "books_reviewing")
+    client=mongo_client, database=os.getenv("MONGO_DB", "book_reviews")
 )
 
 users_service = UsersService(UsersRepository(mongo_engine))

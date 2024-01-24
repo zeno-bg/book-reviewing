@@ -5,13 +5,13 @@ from fastapi.testclient import TestClient
 from fastapi_pagination import add_pagination
 from odmantic import ObjectId
 
-from dependencies import get_reviews_service
-from exceptions import ObjectNotFoundException
-from main import app
-from models import Review
-from schemas.base import SortEnum
-from schemas.reviews import BaseReviewSchema, ReviewPatchSchema, ReviewFilterEnum
-from services.reviews import ReviewsService
+from books_reviewing.dependencies import get_reviews_service
+from books_reviewing.exceptions import ObjectNotFoundException
+from books_reviewing.main import app
+from books_reviewing.models import Review
+from books_reviewing.schemas.base import SortEnum
+from books_reviewing.schemas.reviews import BaseReviewSchema, ReviewPatchSchema, ReviewFilterEnum
+from books_reviewing.services.reviews import ReviewsService
 
 user_1_id = "5f85f36d6dfecacc68228a26"
 
@@ -58,12 +58,12 @@ def test_update_review_when_missing():
         detail="Review not found"
     )
 
-    response = client.patch(f"/api/v1/reviews/{review_id}", json=review_data)
+    with pytest.raises(ObjectNotFoundException):
+        client.patch(f"/api/v1/reviews/{review_id}", json=review_data)
 
     mock_reviews_service.update.assert_called_once_with(
         ObjectId(review_id), ReviewPatchSchema(**review_data)
     )
-    assert response.status_code == 404
 
 
 def test_update_review():
@@ -97,10 +97,10 @@ def test_get_one_review_when_missing():
         detail="Review not found"
     )
 
-    response = client.get(f"/api/v1/reviews/{test_review_id}")
+    with pytest.raises(ObjectNotFoundException):
+        client.get(f"/api/v1/reviews/{test_review_id}")
 
     mock_reviews_service.get_one.assert_called_once_with(ObjectId(test_review_id))
-    assert response.status_code == 404
 
 
 def test_get_one_review():
@@ -180,8 +180,7 @@ def test_delete_review_not_found():
         detail="Review not found"
     )
 
-    response = client.delete(f"/api/v1/reviews/{test_review_id}")
+    with pytest.raises(ObjectNotFoundException):
+        client.delete(f"/api/v1/reviews/{test_review_id}")
 
     mock_reviews_service.delete.assert_called_once_with(ObjectId(test_review_id))
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Review not found"}

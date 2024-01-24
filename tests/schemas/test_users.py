@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from schemas.users import (
+from books_reviewing.schemas.users import (
     BaseUserSchema,
     UserPatchSchema,
     validate_email,

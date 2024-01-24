@@ -5,18 +5,18 @@ from fastapi.testclient import TestClient
 from fastapi_pagination import add_pagination
 from odmantic import ObjectId
 
-from dependencies import get_authors_service
-from exceptions import ObjectNotFoundException
-from main import app
-from models import Author
-from schemas.base import SortEnum
-from schemas.authors import (
+from books_reviewing.dependencies import get_authors_service
+from books_reviewing.exceptions import ObjectNotFoundException
+from books_reviewing.main import app
+from books_reviewing.models import Author
+from books_reviewing.schemas.base import SortEnum
+from books_reviewing.schemas.authors import (
     BaseAuthorSchema,
     AuthorPatchSchema,
     AuthorFilterEnum,
     AuthorOutSchema,
 )
-from services.authors import AuthorsService
+from books_reviewing.services.authors import AuthorsService
 
 test_author_data = {
     "name": "John Doe",
@@ -60,12 +60,12 @@ def test_update_author_when_missing():
         detail="Author not found"
     )
 
-    response = client.patch(f"/api/v1/authors/{author_id}", json=author_data)
+    with pytest.raises(ObjectNotFoundException):
+        client.patch(f"/api/v1/authors/{author_id}", json=author_data)
 
     mock_authors_service.update.assert_called_once_with(
         ObjectId(author_id), AuthorPatchSchema(**author_data)
     )
-    assert response.status_code == 404
 
 
 def test_update_author():
@@ -99,10 +99,10 @@ def test_get_one_author_when_missing():
         detail="Author not found"
     )
 
-    response = client.get(f"/api/v1/authors/{test_author_id}")
+    with pytest.raises(ObjectNotFoundException):
+        client.get(f"/api/v1/authors/{test_author_id}")
 
     mock_authors_service.get_one.assert_called_once_with(ObjectId(test_author_id))
-    assert response.status_code == 404
 
 
 def test_get_one_author():
@@ -185,8 +185,7 @@ def test_delete_author_not_found():
         detail="Author not found"
     )
 
-    response = client.delete(f"/api/v1/authors/{test_author_id}")
+    with pytest.raises(ObjectNotFoundException):
+        client.delete(f"/api/v1/authors/{test_author_id}")
 
     mock_authors_service.delete.assert_called_once_with(ObjectId(test_author_id))
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Author not found"}

@@ -1,14 +1,14 @@
 import asyncio
-from typing import TYPE_CHECKING, ForwardRef
+from typing import TYPE_CHECKING
 
 from fastapi.exceptions import RequestValidationError
 from odmantic import ObjectId
 
-from exceptions import ObjectNotFoundException
-from models import Author
-from repositories.authors import AuthorsRepository
-from schemas.base import SortEnum
-from schemas.authors import (
+from books_reviewing.exceptions import ObjectNotFoundException
+from books_reviewing.models import Author
+from books_reviewing.repositories.authors import AuthorsRepository
+from books_reviewing.schemas.base import SortEnum
+from books_reviewing.schemas.authors import (
     BaseAuthorSchema,
     AuthorPatchSchema,
     AuthorFilterEnum,
@@ -16,7 +16,7 @@ from schemas.authors import (
 )
 
 if TYPE_CHECKING:
-    from services.books import BooksService
+    from books_reviewing.services.books import BooksService
 
 
 class AuthorsService:

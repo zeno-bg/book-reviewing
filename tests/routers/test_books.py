@@ -5,13 +5,13 @@ from fastapi.testclient import TestClient
 from fastapi_pagination import add_pagination
 from odmantic import ObjectId
 
-from dependencies import get_books_service
-from exceptions import ObjectNotFoundException
-from main import app
-from models import Book
-from schemas.base import SortEnum
-from schemas.books import BaseBookSchema, BookPatchSchema, BookFilterEnum, BookOutSchema
-from services.books import BooksService
+from books_reviewing.dependencies import get_books_service
+from books_reviewing.exceptions import ObjectNotFoundException
+from books_reviewing.main import app
+from books_reviewing.models import Book
+from books_reviewing.schemas.base import SortEnum
+from books_reviewing.schemas.books import BaseBookSchema, BookPatchSchema, BookFilterEnum, BookOutSchema
+from books_reviewing.services.books import BooksService
 
 test_book_data = {
     "title": "John Doe's Original",
@@ -56,12 +56,12 @@ def test_update_book_when_missing():
         detail="Book not found"
     )
 
-    response = client.patch(f"/api/v1/books/{book_id}", json=book_data)
+    with pytest.raises(ObjectNotFoundException):
+        client.patch(f"/api/v1/books/{book_id}", json=book_data)
 
     mock_books_service.update.assert_called_once_with(
         ObjectId(book_id), BookPatchSchema(**book_data)
     )
-    assert response.status_code == 404
 
 
 def test_update_book():
@@ -93,10 +93,10 @@ def test_get_one_book_when_missing():
         detail="Book not found"
     )
 
-    response = client.get(f"/api/v1/books/{test_book_id}")
+    with pytest.raises(ObjectNotFoundException):
+        client.get(f"/api/v1/books/{test_book_id}")
 
     mock_books_service.get_one.assert_called_once_with(ObjectId(test_book_id))
-    assert response.status_code == 404
 
 
 def test_get_one_book():
@@ -177,8 +177,7 @@ def test_delete_book_not_found():
         detail="Book not found"
     )
 
-    response = client.delete(f"/api/v1/books/{test_book_id}")
+    with pytest.raises(ObjectNotFoundException):
+        client.delete(f"/api/v1/books/{test_book_id}")
 
     mock_books_service.delete.assert_called_once_with(ObjectId(test_book_id))
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Book not found"}

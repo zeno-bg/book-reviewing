@@ -15,12 +15,12 @@ from starlette.status import (
 
 from exceptions import ObjectNotFoundException, DatabaseException
 
-from routers.users import router as users_router
-from routers.authors import router as authors_router
-from routers.books import router as books_router
-from routers.reviews import router as reviews_router
+from books_reviewing.routers.users import router as users_router
+from books_reviewing.routers.authors import router as authors_router
+from books_reviewing.routers.books import router as books_router
+from books_reviewing.routers.reviews import router as reviews_router
 
-file_handler = logging.FileHandler("errors.log")
+file_handler = logging.FileHandler("../errors.log")
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 file_handler.setFormatter(formatter)
 

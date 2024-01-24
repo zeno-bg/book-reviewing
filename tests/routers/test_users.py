@@ -5,13 +5,13 @@ from fastapi.testclient import TestClient
 from fastapi_pagination import add_pagination
 from odmantic import ObjectId
 
-from dependencies import get_users_service
-from exceptions import ObjectNotFoundException
-from main import app
-from models import User
-from schemas.base import SortEnum
-from schemas.users import BaseUserSchema, UserPatchSchema, UserFilterEnum
-from services.users import UsersService
+from books_reviewing.dependencies import get_users_service
+from books_reviewing.exceptions import ObjectNotFoundException
+from books_reviewing.main import app
+from books_reviewing.models import User
+from books_reviewing.schemas.base import SortEnum
+from books_reviewing.schemas.users import BaseUserSchema, UserPatchSchema, UserFilterEnum
+from books_reviewing.services.users import UsersService
 
 test_user_data = {
     "name": "John Doe",
@@ -55,12 +55,12 @@ def test_update_user_when_missing():
         detail="User not found"
     )
 
-    response = client.patch(f"/api/v1/users/{user_id}", json=user_data)
+    with pytest.raises(ObjectNotFoundException):
+        client.patch(f"/api/v1/users/{user_id}", json=user_data)
 
     mock_users_service.update.assert_called_once_with(
         ObjectId(user_id), UserPatchSchema(**user_data)
     )
-    assert response.status_code == 404
 
 
 def test_update_user():
@@ -92,10 +92,10 @@ def test_get_one_user_when_missing():
         detail="User not found"
     )
 
-    response = client.get(f"/api/v1/users/{test_user_id}")
+    with pytest.raises(ObjectNotFoundException):
+        client.get(f"/api/v1/users/{test_user_id}")
 
     mock_users_service.get_one.assert_called_once_with(ObjectId(test_user_id))
-    assert response.status_code == 404
 
 
 def test_get_one_user():
@@ -173,8 +173,7 @@ def test_delete_user_not_found():
         detail="User not found"
     )
 
-    response = client.delete(f"/api/v1/users/{test_user_id}")
+    with pytest.raises(ObjectNotFoundException):
+        client.delete(f"/api/v1/users/{test_user_id}")
 
     mock_users_service.delete.assert_called_once_with(ObjectId(test_user_id))
-    assert response.status_code == 404
-    assert response.json() == {"detail": "User not found"}

@@ -5,16 +5,16 @@ from fastapi_pagination import Params
 from fastapi_pagination.links import Page
 from odmantic import ObjectId
 
-from dependencies import get_authors_service
-from models import Author
-from schemas.base import SortEnum
-from schemas.authors import (
+from books_reviewing.dependencies import get_authors_service
+from books_reviewing.models import Author
+from books_reviewing.schemas.base import SortEnum
+from books_reviewing.schemas.authors import (
     AuthorPatchSchema,
     BaseAuthorSchema,
     AuthorFilterEnum,
     AuthorOutSchema,
 )
-from services.authors import AuthorsService
+from books_reviewing.services.authors import AuthorsService
 
 router = APIRouter()
 

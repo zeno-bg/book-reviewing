@@ -5,11 +5,11 @@ from fastapi_pagination import Params
 from fastapi_pagination.links import Page
 from odmantic import ObjectId
 
-from dependencies import get_reviews_service
-from models import Review
-from schemas.base import SortEnum
-from schemas.reviews import ReviewPatchSchema, BaseReviewSchema, ReviewFilterEnum
-from services.reviews import ReviewsService
+from books_reviewing.dependencies import get_reviews_service
+from books_reviewing.models import Review
+from books_reviewing.schemas.base import SortEnum
+from books_reviewing.schemas.reviews import ReviewPatchSchema, BaseReviewSchema, ReviewFilterEnum
+from books_reviewing.services.reviews import ReviewsService
 
 router = APIRouter()
 

@@ -1,10 +1,8 @@
-from typing import Any
-
 from odmantic import AIOEngine, ObjectId
 from odmantic.query import QueryExpression
 
-from exceptions import database_exception_wrapper
-from models import Book
+from books_reviewing.exceptions import database_exception_wrapper
+from books_reviewing.models import Book
 
 
 class BooksRepository:

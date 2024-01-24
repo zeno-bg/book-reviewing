@@ -5,13 +5,13 @@ import pytest
 from fastapi.exceptions import RequestValidationError
 from odmantic import ObjectId
 
-from exceptions import ObjectNotFoundException
-from models import User
-from repositories.users import UsersRepository
-from schemas.base import SortEnum
-from schemas.users import BaseUserSchema, UserPatchSchema, UserFilterEnum
-from services.reviews import ReviewsService
-from services.users import UsersService
+from books_reviewing.exceptions import ObjectNotFoundException
+from books_reviewing.models import User
+from books_reviewing.repositories.users import UsersRepository
+from books_reviewing.schemas.base import SortEnum
+from books_reviewing.schemas.users import BaseUserSchema, UserPatchSchema, UserFilterEnum
+from books_reviewing.services.reviews import ReviewsService
+from books_reviewing.services.users import UsersService
 
 
 @pytest.fixture

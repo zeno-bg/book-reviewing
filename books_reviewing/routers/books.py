@@ -5,11 +5,11 @@ from fastapi_pagination import Params
 from fastapi_pagination.links import Page
 from odmantic import ObjectId
 
-from dependencies import get_books_service
-from models import Book
-from schemas.base import SortEnum
-from schemas.books import BookPatchSchema, BaseBookSchema, BookFilterEnum, BookOutSchema
-from services.books import BooksService
+from books_reviewing.dependencies import get_books_service
+from books_reviewing.models import Book
+from books_reviewing.schemas.base import SortEnum
+from books_reviewing.schemas.books import BookPatchSchema, BaseBookSchema, BookFilterEnum, BookOutSchema
+from books_reviewing.services.books import BooksService
 
 router = APIRouter()
 
