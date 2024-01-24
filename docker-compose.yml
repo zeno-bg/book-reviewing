@@ -16,4 +16,5 @@ services:
       - 80:80
     environment:
       MONGO_URI: mongodb://root:E4D339E3F27EDE61C7EDECF1DD23BF2E@mongo:27017/
+      SEED_DUMMY_DATABASE: 1
 
