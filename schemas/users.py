@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
-from typing import Optional
+from enum import Enum
+from typing import Optional, Literal, Any
 
 from pydantic import BaseModel, model_validator, field_validator, Field
 
@@ -58,3 +59,9 @@ def validate_phone(value: str) -> str:
     if not re.compile(r'^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$').match(value):
         raise ValueError("Phone is not valid")
     return value
+
+class UserFilterEnum(str, Enum):
+    name = "name"
+    email = "email"
+    birthday = "birthday"
+    phone = "Phone"

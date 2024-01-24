@@ -1,12 +1,15 @@
+import datetime
 from unittest.mock import MagicMock
 
 import pytest
+from fastapi.exceptions import RequestValidationError
 from odmantic import ObjectId
 
 from exceptions import ObjectNotFoundException
 from models import User
 from repositories.users import UsersRepository
-from schemas.users import BaseUserSchema, UserPatchSchema
+from schemas.base import SortEnum
+from schemas.users import BaseUserSchema, UserPatchSchema, UserFilterEnum
 from services.users import UsersService
 
 
@@ -82,7 +85,31 @@ async def test_get_one_user(users_service, mock_users_repository):
 
 
 @pytest.mark.asyncio
-async def test_get_all_users(users_service, mock_users_repository):
+async def test_query_filters(users_service, mock_users_repository):
+    user_data_list = [
+        {"name": "John Doe", "birthday": "2024-01-23T21:19:18.307552", "email": "john.doe@example.com",
+         "phone": "+1234567890"},
+        {"name": "John Doe", "birthday": "2024-01-23T21:19:18.307552", "email": "jane.doe@example.com",
+         "phone": "+9876543210"},
+    ]
+
+    mock_users_repository.query.return_value = [User(**data) for data in user_data_list]
+
+    result = await users_service.query(filter_attributes=[UserFilterEnum.name, UserFilterEnum.birthday],
+                                       filter_values=["John Doe", "2024-01-23T21:19:18.307552"])
+
+    mock_users_repository.query.assert_called_once_with(
+        filters_dict={'name': 'John Doe', 'birthday': datetime.datetime.fromisoformat('2024-01-23T21:19:18.307552')},
+        sort=UserFilterEnum.name,
+        sort_direction=SortEnum.asc
+    )
+    assert isinstance(result, list)
+    assert all(isinstance(user, User) for user in result)
+    assert all(user.name in ["John Doe"] for user in result)
+
+
+@pytest.mark.asyncio
+async def test_query_default(users_service, mock_users_repository):
     user_data_list = [
         {"name": "John Doe", "birthday": "2024-01-23T21:19:18.307552", "email": "john.doe@example.com",
          "phone": "+1234567890"},
@@ -90,14 +117,46 @@ async def test_get_all_users(users_service, mock_users_repository):
          "phone": "+9876543210"},
     ]
 
-    mock_users_repository.get_all.return_value = [User(**data) for data in user_data_list]
+    mock_users_repository.query.return_value = [User(**data) for data in user_data_list]
 
-    all_users = await users_service.get_all()
+    result = await users_service.query()
 
-    mock_users_repository.get_all.assert_called_once()
-    assert isinstance(all_users, list)
-    assert all(isinstance(user, User) for user in all_users)
-    assert all(user.name in ["John Doe", "Jane Doe"] for user in all_users)
+    mock_users_repository.query.assert_called_once_with(
+        filters_dict={},
+        sort=UserFilterEnum.name,
+        sort_direction=SortEnum.asc
+    )
+    assert isinstance(result, list)
+    assert all(isinstance(user, User) for user in result)
+    assert all(user.name in ["John Doe", "Jane Doe"] for user in result)
+
+@pytest.mark.asyncio
+async def test_query_sort(users_service, mock_users_repository):
+    user_data_list = [
+        {"name": "John Doe", "birthday": "2024-01-23T21:19:18.307552", "email": "john.doe@example.com",
+         "phone": "+1234567890"},
+        {"name": "Jane Doe", "birthday": "2024-01-23T21:19:18.307552", "email": "jane.doe@example.com",
+         "phone": "+9876543210"},
+    ]
+
+    mock_users_repository.query.return_value = [User(**data) for data in user_data_list]
+
+    result = await users_service.query(sort=UserFilterEnum.email, sort_direction=SortEnum.desc)
+
+    mock_users_repository.query.assert_called_once_with(
+        filters_dict={},
+        sort=UserFilterEnum.email,
+        sort_direction=SortEnum.desc
+    )
+    assert isinstance(result, list)
+    assert all(isinstance(user, User) for user in result)
+    assert all(user.name in ["John Doe", "Jane Doe"] for user in result)
+
+
+@pytest.mark.asyncio
+async def test_wrong_filters(users_service, mock_users_repository):
+    with pytest.raises(RequestValidationError):
+        await users_service.query(filter_attributes=[UserFilterEnum.name, UserFilterEnum.birthday], filter_values=["John Doe"])
 
 
 @pytest.mark.asyncio

@@ -8,7 +8,8 @@ from dependencies import get_users_service
 from exceptions import ObjectNotFoundException
 from main import app
 from models import User
-from schemas.users import BaseUserSchema, UserPatchSchema
+from schemas.base import SortEnum
+from schemas.users import BaseUserSchema, UserPatchSchema, UserFilterEnum
 from services.users import UsersService
 
 test_user_data = {
@@ -101,31 +102,36 @@ def test_get_one_user():
     assert response.status_code == 200
     assert response.json()['id'] == test_user_id
 
-
-def test_get_all_users_when_there_are_none():
+def test_query_users_with_filters_and_sort():
     client = TestClient(app)
     mock_users_service = MagicMock(spec=UsersService)
     app.dependency_overrides[get_users_service] = lambda: mock_users_service
 
-    mock_users_service.get_all.return_value = list()
+    filter_attributes = [UserFilterEnum.name, UserFilterEnum.email]
+    filter_values = ["John Doe", "john.doe@example.com"]
+    sort = UserFilterEnum.birthday
+    sort_direction = SortEnum.desc
 
-    response = client.get("/api/v1/users/")
+    mock_users_service.query.return_value = [User(**test_user_data, id=ObjectId(test_user_id))]
 
-    mock_users_service.get_all.assert_called_once()
+    response = client.get(
+        f"/api/v1/users/?filter_attributes={filter_attributes[0].lower()}&filter_attributes={filter_attributes[1].lower()}"
+        f"&filter_values={filter_values[0]}&filter_values={filter_values[1]}&sort={sort.lower()}&sort_direction={sort_direction.lower()}"
+    )
+
+    expected_sort = UserFilterEnum.birthday
+    expected_sort_direction = SortEnum.desc
+
+    mock_users_service.query.assert_called_once_with(
+        filter_attributes,
+        filter_values,
+        expected_sort,
+        expected_sort_direction,
+    )
     assert response.status_code == 200
-
-
-def test_get_all_users():
-    client = TestClient(app)
-    mock_users_service = MagicMock(spec=UsersService)
-    app.dependency_overrides[get_users_service] = lambda: mock_users_service
-
-    mock_users_service.get_all.return_value = list()
-
-    response = client.get("/api/v1/users/")
-
-    mock_users_service.get_all.assert_called_once()
-    assert response.status_code == 200
+    response_json = response.json()
+    assert test_user_data.items() <= response_json[0].items()
+    assert test_user_id == response_json[0]['id']
 
 
 def test_delete_user():

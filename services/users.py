@@ -1,9 +1,13 @@
+import datetime
+
+from fastapi.exceptions import RequestValidationError
 from odmantic import ObjectId
 
 from exceptions import ObjectNotFoundException
 from models import User
 from repositories.users import UsersRepository
-from schemas.users import BaseUserSchema, UserPatchSchema
+from schemas.base import SortEnum
+from schemas.users import BaseUserSchema, UserPatchSchema, UserFilterEnum
 
 
 class UsersService:
@@ -25,8 +29,22 @@ class UsersService:
     async def get_one(self, user_id: ObjectId) -> User:
         return await self.__get_user_by_id_if_exists(user_id)
 
-    async def get_all(self) -> list[User]:
-        return await self.__users_repository.get_all()
+    async def query(self, filter_attributes: list[UserFilterEnum] = None, filter_values: list[str] = None,
+                    sort: UserFilterEnum = None, sort_direction: SortEnum = None) -> list[User]:
+        filters_dict = {}
+        if filter_attributes and filter_values:
+            if len(filter_attributes) != len(filter_values):
+                raise RequestValidationError("Wrong number of filter attributes and values!")
+            i = 0
+            for attribute in filter_attributes:
+                if attribute == UserFilterEnum.birthday:
+                    filters_dict[attribute.lower()] = datetime.datetime.fromisoformat(filter_values[i])
+                else:
+                    filters_dict[attribute.lower()] = filter_values[i]
+                i += 1
+        return await self.__users_repository.query(filters_dict=filters_dict,
+                                                   sort=sort if sort else UserFilterEnum.name,
+                                                   sort_direction=sort_direction.lower() if sort_direction else SortEnum.asc)
 
     async def delete(self, user_id: ObjectId):
         user = await self.__get_user_by_id_if_exists(user_id)
