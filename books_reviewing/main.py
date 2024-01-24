@@ -1,4 +1,6 @@
 import logging
+import os
+from contextlib import asynccontextmanager
 
 import uvicorn as uvicorn
 from fastapi import FastAPI, Request
@@ -29,7 +31,19 @@ logger.addHandler(file_handler)
 logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.ERROR)
 
-app = FastAPI(root_path="/api/v1")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if os.getenv("SEED_DUMMY_DATABASE", 1) == "1":
+        from dependencies import database_seeder
+
+        await database_seeder.seed_database()
+        yield
+        await database_seeder.clear_database()
+    yield
+
+
+app = FastAPI(root_path="/api/v1", lifespan=lifespan)
 
 add_pagination(app)
 

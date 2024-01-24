@@ -3,6 +3,7 @@ import os
 from motor.motor_asyncio import AsyncIOMotorClient
 from odmantic import AIOEngine
 
+from database_seeder import DatabaseSeeder
 from repositories.users import UsersRepository
 from repositories.authors import AuthorsRepository
 from repositories.books import BooksRepository
@@ -27,6 +28,11 @@ reviews_service = ReviewsService(
 books_service.reviews_service = reviews_service
 authors_service.books_service = books_service
 users_service.reviews_service = reviews_service
+
+if os.getenv("SEED_DUMMY_DATABASE", 1) == "1":
+    database_seeder = DatabaseSeeder(
+        users_service, authors_service, books_service, reviews_service, mongo_client
+    )
 
 
 def get_users_service() -> UsersService:

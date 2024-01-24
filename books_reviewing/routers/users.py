@@ -8,7 +8,11 @@ from odmantic import ObjectId
 from books_reviewing.dependencies import get_users_service
 from books_reviewing.models import User
 from books_reviewing.schemas.base import SortEnum
-from books_reviewing.schemas.users import UserPatchSchema, BaseUserSchema, UserFilterEnum
+from books_reviewing.schemas.users import (
+    UserPatchSchema,
+    BaseUserSchema,
+    UserFilterEnum,
+)
 from books_reviewing.services.users import UsersService
 
 router = APIRouter()

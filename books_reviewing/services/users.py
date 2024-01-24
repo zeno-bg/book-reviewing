@@ -9,7 +9,11 @@ from books_reviewing.exceptions import ObjectNotFoundException
 from books_reviewing.models import User
 from books_reviewing.repositories.users import UsersRepository
 from books_reviewing.schemas.base import SortEnum
-from books_reviewing.schemas.users import BaseUserSchema, UserPatchSchema, UserFilterEnum
+from books_reviewing.schemas.users import (
+    BaseUserSchema,
+    UserPatchSchema,
+    UserFilterEnum,
+)
 
 if TYPE_CHECKING:
     from books_reviewing.services.reviews import ReviewsService

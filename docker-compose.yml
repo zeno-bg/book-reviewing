@@ -1,0 +1,19 @@
+version: '3.1'
+
+services:
+
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: E4D339E3F27EDE61C7EDECF1DD23BF2E
+
+  books_reviewing:
+    image: books_reviewing
+    restart: always
+    ports:
+      - 80:80
+    environment:
+      MONGO_URI: mongodb://root:E4D339E3F27EDE61C7EDECF1DD23BF2E@mongo:27017/
+

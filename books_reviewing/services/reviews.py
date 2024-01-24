@@ -7,7 +7,11 @@ from books_reviewing.exceptions import ObjectNotFoundException
 from books_reviewing.models import Review
 from books_reviewing.repositories.reviews import ReviewsRepository
 from books_reviewing.schemas.base import SortEnum
-from books_reviewing.schemas.reviews import BaseReviewSchema, ReviewPatchSchema, ReviewFilterEnum
+from books_reviewing.schemas.reviews import (
+    BaseReviewSchema,
+    ReviewPatchSchema,
+    ReviewFilterEnum,
+)
 from books_reviewing.services.books import BooksService
 from books_reviewing.services.users import UsersService
 

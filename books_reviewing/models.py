@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from odmantic import Model, Reference, ObjectId
+from odmantic import Model, Reference, ObjectId, Field
 
 
 class Author(Model):
@@ -15,7 +15,7 @@ class Book(Model):
     title: str
     description: str
     publication_date: datetime
-    author_id: ObjectId
+    author_id: ObjectId = Field(index=True)
 
     model_config = {"collection": "books"}
 
@@ -32,7 +32,7 @@ class User(Model):
 class Review(Model):
     rating: int
     comment: str
-    user_id: ObjectId
-    book_id: ObjectId
+    user_id: ObjectId = Field(index=True)
+    book_id: ObjectId = Field(index=True)
 
     model_config = {"collection": "reviews"}
