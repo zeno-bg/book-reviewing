@@ -34,11 +34,16 @@ class ReviewsService:
     async def update(self, review_id: ObjectId, review_new: ReviewPatchSchema) -> Review:
         review = await self.__get_review_by_id_if_exists(review_id)
 
+        tasks = []
+
         if review_new.book_id and review_new.book_id != review.book_id:
-            await self.books_service.get_one(review_new.book_id)
+            tasks.append(self.books_service.get_one_without_rating(review_new.book_id))
 
         if review_new.user_id and review_new.user_id != review.user_id:
-            await self.users_service.get_one(review_new.user_id)
+            tasks.append(self.users_service.get_one(review_new.user_id))
+
+        if len(tasks) > 0:
+            await asyncio.gather(*tasks)
 
         review.model_update(review_new, exclude_unset=True)
         await self.__reviews_repository.save(review)
