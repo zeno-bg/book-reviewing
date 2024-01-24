@@ -1,16 +1,14 @@
 import uvicorn as uvicorn
 from fastapi import FastAPI, Request
-from fastapi.encoders import jsonable_encoder
 from fastapi.exception_handlers import http_exception_handler, request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError, HTTPException
-from pydantic import ValidationError
-from starlette.responses import JSONResponse
-from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
+from fastapi_pagination import add_pagination
 
 from exceptions import ObjectNotFoundException, DatabaseException
 from routers.users import router as users_router
 
 app = FastAPI(root_path="/api/v1")
+add_pagination(app)
 app.include_router(users_router, tags=["Users"], prefix="/users")
 
 
@@ -34,7 +32,7 @@ async def custom_http_exception_handler(request: Request, exception: ObjectNotFo
 @app.exception_handler(DatabaseException)
 async def database_exception_handler(request: Request, exception: DatabaseException):
     print("DATABASE EXCEPTION!")
-    print(exception)
+    raise(exception)
     raise HTTPException(status_code=500, detail="Database exception occurred!")
 
 

@@ -64,4 +64,4 @@ class UserFilterEnum(str, Enum):
     name = "name"
     email = "email"
     birthday = "birthday"
-    phone = "Phone"
+    phone = "phone"

@@ -2,6 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest as pytest
 from fastapi.testclient import TestClient
+from fastapi_pagination import add_pagination
 from odmantic import ObjectId
 
 from dependencies import get_users_service
@@ -20,6 +21,8 @@ test_user_data = {
 }
 
 test_user_id = "5f85f36d6dfecacc68428a46"
+
+add_pagination(app)
 
 
 @pytest.mark.asyncio
@@ -112,7 +115,7 @@ def test_query_users_with_filters_and_sort():
     sort = UserFilterEnum.birthday
     sort_direction = SortEnum.desc
 
-    mock_users_service.query.return_value = [User(**test_user_data, id=ObjectId(test_user_id))]
+    mock_users_service.query.return_value = ([User(**test_user_data, id=ObjectId(test_user_id))], 1)
 
     response = client.get(
         f"/api/v1/users/?filter_attributes={filter_attributes[0].lower()}&filter_attributes={filter_attributes[1].lower()}"
@@ -127,11 +130,13 @@ def test_query_users_with_filters_and_sort():
         filter_values,
         expected_sort,
         expected_sort_direction,
+        None,
+        None
     )
     assert response.status_code == 200
-    response_json = response.json()
-    assert test_user_data.items() <= response_json[0].items()
-    assert test_user_id == response_json[0]['id']
+    response_json_items = response.json()['items']
+    assert test_user_data.items() <= response_json_items[0].items()
+    assert test_user_id == response_json_items[0]['id']
 
 
 def test_delete_user():

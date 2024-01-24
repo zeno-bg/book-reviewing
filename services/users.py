@@ -1,6 +1,7 @@
 import datetime
 
 from fastapi.exceptions import RequestValidationError
+from fastapi_pagination.links import Page
 from odmantic import ObjectId
 
 from exceptions import ObjectNotFoundException
@@ -30,7 +31,8 @@ class UsersService:
         return await self.__get_user_by_id_if_exists(user_id)
 
     async def query(self, filter_attributes: list[UserFilterEnum] = None, filter_values: list[str] = None,
-                    sort: UserFilterEnum = None, sort_direction: SortEnum = None) -> list[User]:
+                    sort: UserFilterEnum = None, sort_direction: SortEnum = None,
+                    page: int = None, size: int = None) -> (list[User], int):
         filters_dict = {}
         if filter_attributes and filter_values:
             if len(filter_attributes) != len(filter_values):
@@ -44,7 +46,8 @@ class UsersService:
                 i += 1
         return await self.__users_repository.query(filters_dict=filters_dict,
                                                    sort=sort if sort else UserFilterEnum.name,
-                                                   sort_direction=sort_direction.lower() if sort_direction else SortEnum.asc)
+                                                   sort_direction=sort_direction.lower() if sort_direction else 'asc',
+                                                   page=page if page else 1, size=size if size else 10)
 
     async def delete(self, user_id: ObjectId):
         user = await self.__get_user_by_id_if_exists(user_id)

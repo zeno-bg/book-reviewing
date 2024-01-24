@@ -101,7 +101,9 @@ async def test_query_filters(users_service, mock_users_repository):
     mock_users_repository.query.assert_called_once_with(
         filters_dict={'name': 'John Doe', 'birthday': datetime.datetime.fromisoformat('2024-01-23T21:19:18.307552')},
         sort=UserFilterEnum.name,
-        sort_direction=SortEnum.asc
+        sort_direction=SortEnum.asc,
+        page=1,
+        size=10
     )
     assert isinstance(result, list)
     assert all(isinstance(user, User) for user in result)
@@ -124,7 +126,9 @@ async def test_query_default(users_service, mock_users_repository):
     mock_users_repository.query.assert_called_once_with(
         filters_dict={},
         sort=UserFilterEnum.name,
-        sort_direction=SortEnum.asc
+        sort_direction=SortEnum.asc,
+        page = 1,
+        size = 10
     )
     assert isinstance(result, list)
     assert all(isinstance(user, User) for user in result)
@@ -146,7 +150,9 @@ async def test_query_sort(users_service, mock_users_repository):
     mock_users_repository.query.assert_called_once_with(
         filters_dict={},
         sort=UserFilterEnum.email,
-        sort_direction=SortEnum.desc
+        sort_direction=SortEnum.desc,
+        page=1,
+        size=10
     )
     assert isinstance(result, list)
     assert all(isinstance(user, User) for user in result)

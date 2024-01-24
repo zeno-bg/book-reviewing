@@ -1,9 +1,9 @@
-from typing import Any
-
+from fastapi_pagination import Params
+from fastapi_pagination.links import Page
 from odmantic import AIOEngine, ObjectId
 from odmantic.query import QueryExpression
 
-from exceptions import DatabaseException, database_exception_wrapper
+from exceptions import database_exception_wrapper
 from models import User
 
 
@@ -31,10 +31,15 @@ class UsersRepository:
         await self.mongo_engine.delete(user)
 
     @database_exception_wrapper
-    async def query(self, sort: str, sort_direction: str, filters_dict: dict[str, str] = None) -> list[User]:
+    async def query(self, sort: str, sort_direction: str, page: int, size: int,
+                    filters_dict: dict[str, str] = None) -> (list[User], int):
         queries = []
         if len(filters_dict) > 0:
             for filter in filters_dict.keys():
                 queries.append(QueryExpression(eval('User.' + filter) == filters_dict[filter]))
 
-        return await self.mongo_engine.find(User, *queries, sort=eval('User.' + sort + '.' + sort_direction + '()'))
+        items = await self.mongo_engine.find(User, *queries, sort=eval('User.' + sort + '.' + sort_direction + '()'),
+                                              skip=(page - 1) * size, limit=size)
+        total_count = await self.mongo_engine.count(User, *queries)
+
+        return items, total_count
