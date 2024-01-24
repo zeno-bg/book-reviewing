@@ -14,7 +14,6 @@ class UsersService:
 
     async def create(self, user: BaseUserSchema) -> User:
         user_in_db = User(**user.model_dump())
-        User.model_validate(user_in_db)
         return await self.__users_repository.save(user_in_db)
 
     async def update(self, user_id: ObjectId, user_new: UserPatchSchema) -> User:
@@ -23,8 +22,8 @@ class UsersService:
         await self.__users_repository.save(user)
         return user
 
-    async def get_one(self, user_id: ObjectId) -> User | None:
-        return await self.__users_repository.get_one(user_id)
+    async def get_one(self, user_id: ObjectId) -> User:
+        return await self.__get_user_by_id_if_exists(user_id)
 
     async def get_all(self) -> list[User]:
         return await self.__users_repository.get_all()
