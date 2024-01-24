@@ -1,14 +1,20 @@
-import re
-from datetime import datetime
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, model_validator, field_validator, Field
+from odmantic import ObjectId
+from pydantic import BaseModel, model_validator, Field
 
 
 class BaseAuthorSchema(BaseModel):
     name: str = Field(min_length=3, max_length=200)
     bio: str
+
+
+class AuthorOutSchema(BaseModel):
+    id: ObjectId
+    name: str
+    bio: str
+    books_count: int
 
 
 class AuthorPatchSchema(BaseModel):

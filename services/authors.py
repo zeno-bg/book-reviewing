@@ -1,4 +1,5 @@
-import datetime
+import asyncio
+from typing import TYPE_CHECKING, ForwardRef
 
 from fastapi.exceptions import RequestValidationError
 from odmantic import ObjectId
@@ -7,14 +8,20 @@ from exceptions import ObjectNotFoundException
 from models import Author
 from repositories.authors import AuthorsRepository
 from schemas.base import SortEnum
-from schemas.authors import BaseAuthorSchema, AuthorPatchSchema, AuthorFilterEnum
+from schemas.authors import BaseAuthorSchema, AuthorPatchSchema, AuthorFilterEnum, AuthorOutSchema
+
+if TYPE_CHECKING:
+    from services.books import BooksService
 
 
 class AuthorsService:
+    books_service: 'BooksService'
+
     __authors_repository: AuthorsRepository
 
-    def __init__(self, authors_repository: AuthorsRepository):
+    def __init__(self, authors_repository: AuthorsRepository, books_service: 'BooksService' = None):
         self.__authors_repository = authors_repository
+        self.books_service = books_service
 
     async def create(self, author: BaseAuthorSchema) -> Author:
         author_in_db = Author(**author.model_dump())
@@ -26,8 +33,10 @@ class AuthorsService:
         await self.__authors_repository.save(author)
         return author
 
-    async def get_one(self, author_id: ObjectId) -> Author:
-        return await self.__get_author_by_id_if_exists(author_id)
+    async def get_one(self, author_id: ObjectId) -> AuthorOutSchema:
+        author, books_count = await asyncio.gather(self.__get_author_by_id_if_exists(author_id),
+                                                   self.books_service.get_book_count_for_author(author_id))
+        return AuthorOutSchema(**author.model_dump(), books_count=books_count)
 
     async def query(self, filter_attributes: list[AuthorFilterEnum] = None, filter_values: list[str] = None,
                     sort: AuthorFilterEnum = None, sort_direction: SortEnum = None,
@@ -46,7 +55,8 @@ class AuthorsService:
 
     async def delete(self, author_id: ObjectId):
         author = await self.__get_author_by_id_if_exists(author_id)
-        await self.__authors_repository.delete(author)
+        await asyncio.gather(self.__authors_repository.delete(author),
+                             self.books_service.delete_books_for_author(author_id))
 
     async def __get_author_by_id_if_exists(self, author_id: ObjectId) -> Author:
         author = await self.__authors_repository.get_one(author_id)

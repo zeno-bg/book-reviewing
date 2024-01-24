@@ -9,8 +9,9 @@ from exceptions import ObjectNotFoundException
 from models import Author
 from repositories.authors import AuthorsRepository
 from schemas.base import SortEnum
-from schemas.authors import BaseAuthorSchema, AuthorPatchSchema, AuthorFilterEnum
+from schemas.authors import BaseAuthorSchema, AuthorPatchSchema, AuthorFilterEnum, AuthorOutSchema
 from services.authors import AuthorsService
+from services.books import BooksService
 
 
 @pytest.fixture
@@ -19,8 +20,13 @@ def mock_authors_repository():
 
 
 @pytest.fixture
-def authors_service(mock_authors_repository):
-    return AuthorsService(authors_repository=mock_authors_repository)
+def mock_books_service():
+    return MagicMock(spec=BooksService)
+
+
+@pytest.fixture
+def authors_service(mock_authors_repository, mock_books_service):
+    return AuthorsService(authors_repository=mock_authors_repository, books_service=mock_books_service)
 
 
 author_data_list = [
@@ -67,13 +73,14 @@ async def test_update_author(authors_service, mock_authors_repository):
 
 
 @pytest.mark.asyncio
-async def test_get_one_author(authors_service, mock_authors_repository):
+async def test_get_one_author(authors_service, mock_authors_repository, mock_books_service):
     mock_authors_repository.get_one.return_value = Author(**author_data, id=author_id)
 
     retrieved_author = await authors_service.get_one(ObjectId(author_id))
 
     mock_authors_repository.get_one.assert_called_once_with(ObjectId(author_id))
-    assert isinstance(retrieved_author, Author)
+    mock_books_service.get_book_count_for_author.assert_called_once_with(ObjectId(author_id))
+    assert isinstance(retrieved_author, AuthorOutSchema)
     assert retrieved_author.name == author_data["name"]
     assert str(retrieved_author.id) == author_id
 
@@ -142,13 +149,14 @@ async def test_wrong_filters(authors_service, mock_authors_repository):
 
 
 @pytest.mark.asyncio
-async def test_delete_author(authors_service, mock_authors_repository):
+async def test_delete_author(authors_service, mock_authors_repository, mock_books_service):
     mock_authors_repository.get_one.return_value = Author(name="Old John", bio="too old now")
 
     await authors_service.delete(ObjectId(author_id))
 
     mock_authors_repository.get_one.assert_called_once_with(ObjectId(author_id))
     mock_authors_repository.delete.assert_called_once()
+    mock_books_service.delete_books_for_author.assert_called_once_with(ObjectId(author_id))
 
 
 @pytest.mark.asyncio

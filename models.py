@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from odmantic import Model, Reference, ObjectId
-from pydantic import BaseModel
 
 
 class Author(Model):
@@ -18,19 +17,11 @@ class Book(Model):
     title: str
     description: str
     publication_date: datetime
-    author_id: Author = Reference()
+    author_id: ObjectId
 
     model_config = {
         "collection": "books"
     }
-
-
-class BookSchema(BaseModel):
-    isbn: str
-    title: str
-    description: str
-    publication_date: datetime
-    author_id: ObjectId
 
 
 class User(Model):

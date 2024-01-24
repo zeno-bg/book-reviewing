@@ -10,7 +10,7 @@ from exceptions import ObjectNotFoundException
 from main import app
 from models import Author
 from schemas.base import SortEnum
-from schemas.authors import BaseAuthorSchema, AuthorPatchSchema, AuthorFilterEnum
+from schemas.authors import BaseAuthorSchema, AuthorPatchSchema, AuthorFilterEnum, AuthorOutSchema
 from services.authors import AuthorsService
 
 test_author_data = {
@@ -94,14 +94,17 @@ def test_get_one_author():
     app.dependency_overrides[get_authors_service] = lambda: mock_authors_service
 
     author_data = test_author_data
+    books_count = 53
 
-    mock_authors_service.get_one.return_value = Author(**author_data, id=ObjectId(test_author_id))
+    mock_authors_service.get_one.return_value = AuthorOutSchema(**author_data, id=ObjectId(test_author_id),
+                                                                books_count=books_count)
 
     response = client.get(f"/api/v1/authors/{test_author_id}")
 
     mock_authors_service.get_one.assert_called_once_with(ObjectId(test_author_id))
     assert response.status_code == 200
     assert response.json()['id'] == test_author_id
+    assert response.json()['books_count'] == books_count
 
 def test_query_authors_with_filters_and_sort():
     client = TestClient(app)

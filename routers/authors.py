@@ -8,7 +8,7 @@ from odmantic import ObjectId
 from dependencies import get_authors_service
 from models import Author
 from schemas.base import SortEnum
-from schemas.authors import AuthorPatchSchema, BaseAuthorSchema, AuthorFilterEnum
+from schemas.authors import AuthorPatchSchema, BaseAuthorSchema, AuthorFilterEnum, AuthorOutSchema
 from services.authors import AuthorsService
 
 router = APIRouter()
@@ -27,7 +27,7 @@ async def update(author_id: ObjectId, author_new: AuthorPatchSchema, authors_ser
 
 
 @router.get('/{author_id}')
-async def get_one(author_id: ObjectId, authors_service: AuthorsServiceDep) -> Author:
+async def get_one(author_id: ObjectId, authors_service: AuthorsServiceDep) -> AuthorOutSchema:
     return await authors_service.get_one(author_id)
 
 
@@ -45,6 +45,6 @@ async def query(authors_service: AuthorsServiceDep,
     return Page.create(items=items, params=params, total=total_count)
 
 
-@router.delete('/{author_id}', status_code=204)
+@router.delete('/{author_id}', status_code=204, description="Also deletes all books for this author!")
 async def delete(author_id: ObjectId, authors_service: AuthorsServiceDep):
     await authors_service.delete(author_id)
