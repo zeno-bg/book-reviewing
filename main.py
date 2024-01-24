@@ -50,7 +50,7 @@ async def validation_exception_handler(request: Request, exception: RequestValid
 async def custom_http_exception_handler(request: Request, exception: ObjectNotFoundException):
     background_task = BackgroundTask(log_errors, exception)
     return JSONResponse(status_code=HTTP_404_NOT_FOUND,
-                        content=jsonable_encoder(exception.detail),
+                        content=jsonable_encoder({'detail': exception.detail}),
                         background=background_task)
 
 
@@ -58,7 +58,7 @@ async def custom_http_exception_handler(request: Request, exception: ObjectNotFo
 async def database_exception_handler(request: Request, exception: DatabaseException):
     background_task = BackgroundTask(log_errors, exception)
     return JSONResponse(status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-                        content=jsonable_encoder("Internal Server Error"),
+                        content=jsonable_encoder({'detail': "Internal Server Error"}),
                         background=background_task)
 
 
