@@ -26,7 +26,7 @@ This will build the `books_reviewing` docker image.
 
 Use `docker-compose up` to start the application. Access the OpenAPI specs on `127.0.0.1/docs` where you can create requests.
 
-The application pre-seeds the database with dummy data and deletes it when it is shutdown. You can remove the `SEED_DUMMY_DATABASE` env variable from docker-compose if you would like to have a clean database.
+The application pre-seeds the database with dummy data and deletes it when it is shutdown. You can set the `SEED_DUMMY_DATABASE` env variable to `0` in `docker-compose.yml` if you would like to have a clean database.
 
 ## OpenAPI spec
 
