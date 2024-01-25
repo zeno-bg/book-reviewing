@@ -1,4 +1,4 @@
-# Book reviewing 
+# Book reviewing backend
 This is a FastAPI implementation of a simple book reviewing backend.
 It uses MongoDB as a database with Odmantic as an ODM.
 
