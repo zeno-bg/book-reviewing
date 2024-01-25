@@ -7,10 +7,10 @@ from books_reviewing.services.users import UsersService
 from books_reviewing.services.authors import AuthorsService
 from books_reviewing.services.books import BooksService
 from books_reviewing.services.reviews import ReviewsService
-from schemas.authors import BaseAuthorSchema
-from schemas.books import BaseBookSchema
-from schemas.reviews import BaseReviewSchema
-from schemas.users import BaseUserSchema
+from books_reviewing.schemas.authors import BaseAuthorSchema
+from books_reviewing.schemas.books import BaseBookSchema
+from books_reviewing.schemas.reviews import BaseReviewSchema
+from books_reviewing.schemas.users import BaseUserSchema
 
 
 class DatabaseSeeder:

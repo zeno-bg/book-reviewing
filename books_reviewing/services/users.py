@@ -60,15 +60,13 @@ class UsersService:
                 raise RequestValidationError(
                     "Wrong number of filter attributes and values!"
                 )
-            i = 0
-            for attribute in filter_attributes:
+            for attribute, value in zip(filter_attributes, filter_values):
                 if attribute == UserFilterEnum.birthday:
                     filters_dict[attribute.lower()] = datetime.datetime.fromisoformat(
-                        filter_values[i]
+                        value
                     )
                 else:
-                    filters_dict[attribute.lower()] = filter_values[i]
-                i += 1
+                    filters_dict[attribute.lower()] = value
         return await self.__users_repository.query(
             filters_dict=filters_dict,
             sort=sort if sort else UserFilterEnum.name,

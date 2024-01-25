@@ -78,13 +78,11 @@ class ReviewsService:
                 raise RequestValidationError(
                     "Wrong number of filter attributes and values!"
                 )
-            i = 0
-            for attribute in filter_attributes:
+            for attribute, value in zip(filter_attributes, filter_values):
                 if attribute in [ReviewFilterEnum.book_id, ReviewFilterEnum.user_id]:
-                    filters_dict[attribute.lower()] = ObjectId(filter_values[i])
+                    filters_dict[attribute.lower()] = ObjectId(value)
                 else:
-                    filters_dict[attribute.lower()] = filter_values[i]
-                i += 1
+                    filters_dict[attribute.lower()] = value
         return await self.__reviews_repository.query(
             filters_dict=filters_dict,
             sort=sort if sort else ReviewFilterEnum.comment,
